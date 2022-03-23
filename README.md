@@ -30,9 +30,9 @@ The function has six major steps.
 
 First, it removes any completely duplicated rows in the data frame using the `unique()` function. 
 
-Second, it finds all of the columns that have data split over multiple rows and collapses the unique values from those rows for each document ID into a single semicolon-delimited field. To do this, it splits the data into a list of data frames using the column specified in the `doc_id` argument (which defaults to "Appl.Id", which is how that column typically is read in to R), finds which data frames and columns have multiple rows with non-identical data, and then pastes the values from those rows and columns together into single text strings. It then creates a new version of the data frame with one row per `doc_id` and replaces the relevant columns with the semicolon-delimited versions.
+Second, if a single document has data spread over multiple rows, it collapses that data into a single semicolon-delimited string. To do this, it first splits the data into a list of data frames (one data frame for each document) using the column specified in the `doc_id` argument (which defaults to "Appl.Id", which is how that column typically is read in to R). Next, it finds which data frames have multiple rows for the same `doc_id`. Next, it finds which columns within those data frames  have non-identical data in its rows (i.e., data spread over multiple rows). For each identified column, it then pastes the unique values for each document together into semicolon-delimited text strings. Finally, it creates a new version of the data frame with one row per `doc_id` and replaces the identified column values with the newly created semicolon-delimited versions.
 
-Third, if the data frame has the relevant columns, it adds a series of new "Y/N" columns for animal subjects, human subjects, clinical trial, and award status. It checks the given status codes against a list of known status codes to return a flag indicating if the award has the field or not. So an award that includes human subjects would be marked as "Y" in the added `is_human` column. 
+Third, if the data frame has the necessary columns, it adds a series of new "Y/N" columns for animal subjects, human subjects, clinical trial, and award status. It checks the given status codes against a list of known status codes to return a flag indicating if the award has the field or not. So an award that includes human subjects would be marked as "Y" in the added `is_human` column. 
 
 Fourth, it replaces awkward column names like "Awd.Tot.Cost.." from the original QVR data with more R-friendly versions like "awd_tot_cost". 
 
@@ -41,4 +41,4 @@ Fifth, it replaces all cells in the data frame that have a value of "-" with NA.
 And finally, it removes any columns that consist entirely of NA values. QVR will often inlcude extra commas at the end of lines, which are read into R as being empty columns, so the function removes them.
 
 ## Extensions
-At the moment, this function has only been tested on data sets from QVR that include an Appl ID column, but in principle it could be used on other data sets with different document IDs by changing the `doc_id` argument. 
+At the moment, this function has only been tested on data sets from QVR that include an Appl ID column, but in principle it could be used to collapse data on other unique identifiers (like Investigator Profile IDs, ORCID IDs, or FOA numbers) or used on other data sets with different document IDs by changing the `doc_id` argument. 
