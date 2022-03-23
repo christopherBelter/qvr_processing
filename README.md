@@ -34,7 +34,7 @@ Third, if the data frame has the relevant columns, it adds a series of new "Y/N"
 
 Fourth, it transforms awkward column names like "Awd.Tot.Cost.." from the original QVR data with more R-friendly versions like "awd_tot_cost". 
 
-Fifth, it replaces all cells in the data frame that a value of "-" with NA values. 
+Fifth, it replaces all cells in the data frame that have a value of "-" with NA. 
 
 And finally, it removes any columns that consist entirely of NA values. QVR will often inlcude extra commas at the end of lines, which are read into R as being empty columns, so the function removes them.
 
