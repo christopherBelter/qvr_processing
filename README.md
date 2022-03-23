@@ -26,4 +26,4 @@ appls <- process_qvr_data(appls)
 ```
 
 ## How it works
-The function has six major steps. Explanation TBD.
+The function has six major steps. First, it removes any completely duplicated rows in the data frame using the `unique()` function. Second, it finds all of the columns that have data split over multiple rows and collapses the unique values from those rows for each document ID into a single semicolon-delimeted field. Third, if the data frame has the relevant columns, it adds a series of new "Y/N" columns for animal subjects, human subjects, clinical trial, and award status. Fourth, it transforms awkward column names like "Awd.Tot.Cost.." from the original QVR data with more R-friendly versions like "awd_tot_cost". Fifth, it replaces all cells in the data frame that a value of "-" with NA values. And finally, it removes any columns that consist entirely of NA values, which are sometimes added to the QVR export. 
