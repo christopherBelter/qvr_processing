@@ -3,9 +3,10 @@ process_qvr_data <- function(the_data, id_column = "Appl.Id") {
 	if (sum(duplicated(the_data[,id_column])) > 0) {
 		split_data <- split(the_data, the_data[,id_column])
 		tmp <- which(sapply(split_data, nrow) > 1)
-		tmp2 <- lapply(tmp, function(y) colnames(split_data[[y]][sapply(1:ncol(split_data[[y]]), function(x) any(duplicated(split_data[[y]][,x]))) == FALSE]))
+		tmp2 <- lapply(tmp, function(y) colnames(split_data[[y]][sapply(1:ncol(split_data[[y]]), function(x) length(unique(split_data[[y]][,x]))) > 1]))
 		dupCols <- unique(unlist(tmp2))
 		the_data <- the_data[!duplicated(the_data[,id_column]),]
+		the_data <- the_data[order(the_data[,id_column]),] ## split_data is ordered by id_column, so need to order the_data the same way to ensure the values match
 		for (i in 1:length(dupCols)) {
 		  the_data[,dupCols[i]] <- sapply(1:length(split_data), function(x) paste(unique(split_data[[x]][,dupCols[i]]), collapse = ";"))
 		}
@@ -22,7 +23,7 @@ process_qvr_data <- function(the_data, id_column = "Appl.Id") {
 		the_data$is_trial <- sapply(1:nrow(the_data), function(x) ifelse(any(the_data$Clinical.Trial[x] %in% c("1", "Y"), the_data$Phase.3.Trials[x] %in% c("1", "Y")), "Y", "N"))  
 	}
 	if ("Stat.Grp" %in% colnames(the_data) == TRUE) {
-		the_data$is_awarded <- ifelse(the_data$Stat.Grp %in% c("A", "TP", "U"), "Y", "N")
+		the_data$is_awarded <- ifelse(the_data$Stat.Grp %in% c("A", "TP", "U", "T"), "Y", "N")
 	}
 	colnames(the_data) <- tolower(colnames(the_data))
 	colnames(the_data) <- gsub("\\.\\.*", "_", colnames(the_data))
