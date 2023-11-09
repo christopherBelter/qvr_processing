@@ -25,6 +25,13 @@ process_qvr_data <- function(the_data, id_column = "Appl.Id") {
 	if ("Stat.Grp" %in% colnames(the_data) == TRUE) {
 		the_data$is_awarded <- ifelse(the_data$Stat.Grp %in% c("A", "TP", "U", "T"), "Y", "N")
 	}
+	if ("Inst.Type" %in% colnames(the_data) == TRUE) {
+		the_data$inst_type_desc[the_data$Inst.Type == 10] <- "Higher education"
+		the_data$inst_type_desc[the_data$Inst.Type == 20] <- "Research organization"
+		the_data$inst_type_desc[the_data$Inst.Type == 30] <- "Independent hospital"
+		the_data$inst_type_desc[the_data$Inst.Type == 40] <- "Other education"
+		the_data$inst_type_desc[is.na(the_data$inst_type_desc)] <- "Other"
+	}
 	colnames(the_data) <- tolower(colnames(the_data))
 	colnames(the_data) <- gsub("\\.\\.*", "_", colnames(the_data))
 	colnames(the_data) <- gsub("_$", "", colnames(the_data))
@@ -37,3 +44,30 @@ process_qvr_data <- function(the_data, id_column = "Appl.Id") {
 # Usage
 # appls <- read.csv("qvr_application_data.csv", stringsAsFactors = FALSE)
 # appls <- process_qvr_data(appls)
+
+
+## before doing this for each file, replace the [sub] box with a space " " in notepad++ for each file
+## this function also assumes there are only two columns in the abstract data frame [appl_id, abstracts], so this only works for data in that structure
+clean_abstracts <- function(filepath, overwrite = FALSE) {
+	the_abstracts <- scan(filepath, what = "varchar", sep = "\n", quiet = TRUE, skipNul = TRUE)
+	the_abstracts <- sapply(the_abstracts, iconv, to = "ASCII", sub = " ")
+	prob_lines <- which(grepl("\",\".+\",\".+", the_abstracts))
+	while (length(prob_lines) > 0) {
+	  the_abstracts <- gsub("(\",\".+)(\",\")(.+)", "\\1 \\3", the_abstracts)
+	  prob_lines <- which(grepl("\",\".+\",\".+", the_abstracts))
+	}
+	the_abstracts <- gsub("(?<!\",)$", "\",", the_abstracts, perl = TRUE)
+	if (overwrite == TRUE) {
+	  writeLines(the_abstracts, con = filepath)
+	}
+	else {
+	  filepath <- gsub("(\\.[a-z]{3,4}$)", "_cleaned\\1", filepath)
+	  writeLines(the_abstracts, con = filepath)
+	}
+	message("Done")
+}
+## what I'm essentially doing here is reading in the csv as a vector of character strings so that the extra commas don't hurt anything
+## I then look for the "," string of characters after the first column (i.e. a second occurrence of that string, which indicates an incorrect column break)
+## I then gsub the second "," substring out of the main string by retaining just the substrings on either side of the problem substring
+## This means I need to do that multiple times if there are multiple "," substrings in the main string, thus the 'while' loop
+
