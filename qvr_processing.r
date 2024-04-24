@@ -1,4 +1,4 @@
-process_qvr_data <- function(the_data, id_column = "Appl.Id") {
+process_qvr_data <- function(the_data, id_column = "Appl.Id", hd_branch = TRUE) {
 	the_data <- unique(the_data)
 	if (sum(duplicated(the_data[,id_column])) > 0) {
 		split_data <- split(the_data, the_data[,id_column])
@@ -31,6 +31,21 @@ process_qvr_data <- function(the_data, id_column = "Appl.Id") {
 		the_data$inst_type_desc[the_data$Inst.Type == 30] <- "Independent hospital"
 		the_data$inst_type_desc[the_data$Inst.Type == 40] <- "Other education"
 		the_data$inst_type_desc[is.na(the_data$inst_type_desc)] <- "Other"
+	}
+	if (hd_branch == TRUE && "PCC" %in% colnames(the_data) == TRUE) {
+		the_data$branch <- gsub("[ -].+", "", the_data$PCC)
+		the_data$branch[the_data$branch %in% c("HLB", "CDB")] <- "CDBB"
+		the_data$branch[the_data$branch %in% c("CE", "CD", "CRE", "CARE", "CRH", "CDDB")] <- "CRB"
+		the_data$branch[the_data$branch %in% c("GT", "DBGT", "DBSVB")] <- "DBCAB"
+		the_data$branch[the_data$branch %in% c("RS")] <- "FI"
+		the_data$branch[the_data$branch %in% c("MRDD", "IDD")] <- "IDDB"
+		the_data$branch[the_data$branch %in% c("PAMA")] <- "MPIDB"
+		the_data$branch[the_data$branch %in% c("CP", "ARMR", "BRMR", "TSR", "BSCD", "SMAD", "BSRT", "BSRE")] <- "NCMRR"
+		the_data$branch[the_data$branch %in% c("OPP")] <- "OPPTB"
+		the_data$branch[the_data$branch %in% c("DBS", "EA", "OHE")] <- "PDB"
+		the_data$branch[the_data$branch %in% c("NE", "ENG")] <- "PGNB"
+		the_data$branch[the_data$branch %in% c("PP")] <- "PPB"
+		the_data$branch[the_data$branch %in% c("PCCR")] <- "PTCIB"
 	}
 	colnames(the_data) <- tolower(colnames(the_data))
 	colnames(the_data) <- gsub("\\.\\.*", "_", colnames(the_data))
@@ -71,3 +86,50 @@ clean_abstracts <- function(filepath, overwrite = FALSE) {
 ## I then gsub the second "," substring out of the main string by retaining just the substrings on either side of the problem substring
 ## This means I need to do that multiple times if there are multiple "," substrings in the main string, thus the 'while' loop
 
+clean_org_names <- function(x) {
+	x <- gsub("\\bUNIV\\b", "UNIVERSITY", x)
+	x <- gsub("\\bHOSP\\b", "HOSPITAL", x)
+	x <- gsub("\\bRES\\b", "RESEARCH", x)
+	x <- gsub("\\bINST\\b", "INSTITUTE", x)
+	x <- gsub("\\bMED\\b", "MEDICAL", x)
+	x <- gsub("\\bBR\\b", "BRANCH", x)
+	x <- gsub("\\bCOLL\\b", "COLLEGE", x)
+	x <- gsub("\\bHLTH\\b", "HEALTH", x)
+	x <- gsub("\\bSCIS*\\b", "SCIENCE", x)
+	x <- gsub("\\bTX\\b", "TEXAS", x)
+	x <- gsub("\\bCTR\\b", "CENTER", x)
+	x <- gsub("\\bSCH\\b", "SCHOOL", x)
+	x <- gsub("\\bCOL\\b", "COLLEGE", x)
+	x <- gsub(", INC", "", x)
+	#x <- gsub(";LOAN REPAYMENT APPLICATIONS$", "", x)
+	x <- gsub("\\(.+\\)", "", x)
+	x <- gsub(" AT ", ", ", x)
+	x <- gsub("COLUMBIA UNIVERSITY HEALTH SCIENCES", "COLUMBIA UNIVERSITY", x)
+	x <- gsub("COLUMBIA UNIVERSITY NEW YORK MORNINGSIDE", "COLUMBIA UNIVERSITY", x)
+	x <- gsub("MOUNT SINAI SCHOOL OF MEDICINE OF CUNY", "MOUNT SINAI SCHOOL OF MEDICINE", x)
+	x <- gsub("CUNY GRADUATE SCHOOL AND UNIVERSITY CENTER", "CITY UNIVERSITY OF NEW YORK", x)
+	x <- gsub("TRUSTEES OF ", "", x)
+	x <- gsub("NEW YORK STATE PSYCHIATRIC INSTITUTE dba RESEARCH FOUNDATION FOR MENTAL HYGIENE", "NEW YORK STATE PSYCHIATRIC INSTITUTE", x)
+	x <- gsub("UNIVERSITY OF VERMONT & ST AGRIC COLLEGE", "UNIVERSITY OF VERMONT", x)
+	x <- gsub("REHABILITATION INSTITUTE OF CHICAGO D/B/A SHIRLEY RYAN ABILITYLAB", "REHABILITATION INSTITUTE OF CHICAGO", x)
+	x <- gsub("SANFORD RESEARCH/USD", "SANFORD RESEARCH", x)
+	x <- gsub("SANFORD BURNHAM PREBYS MEDICAL DISCOVERY INSTITUTE", "SANFORD RESEARCH", x)
+	x <- gsub("UNIVERSITY OF CONNECTICUT SCHOOL OF MEDICAL/DNT", "UNIVERSITY OF CONNECTICUT", x)
+	x <- gsub("UNIVERSITY OF MEDICAL/DENT OF NJ-NJ MEDICAL SCHOOL", "UNIVERSITY OF MEDICINE AND DENTISTRY OF NEW JERSEY", x)
+	x <- gsub("UNIVERSITY OF MEDICAL/DENT NJ-R W JOHNSON MEDICAL SCHOOL", "UNIVERSITY OF MEDICINE AND DENTISTRY OF NEW JERSEY", x)
+	x <- gsub("CHILDREN'S HOSPITAL PITTSBURGH/UPMC HEALTH SYS", "CHILDREN'S HOSPITAL PITTSBURGH", x)
+	x <- gsub("LUNDQUIST INSTITUTE FOR BIOMEDICAL INNOVATION, HARBOR-UCLA MEDICAL CENTER", "LUNDQUIST INSTITUTE FOR BIOMEDICAL INNOVATION", x)
+	x <- gsub("U.S. NATIONAL INSTITUTE/CHILD HEALTH/HUMAN DEV", "NATIONAL INSTITUTE CHILD HEALTH HUMAN", x)
+	x <- gsub("EUNICE KENNEDY SHRIVER CENTER MTL RETARDATN", "NATIONAL INSTITUTE CHILD HEALTH HUMAN", x)
+	x <- gsub("VIRGINIA POLYTECHNIC INSTITUTE AND ST UNIVERSITY", "VIRGINIA POLYTECHNIC INSTITUTE", x)
+	x <- gsub("MAGEE-WOMEN'S HOSPITAL OF UPMC", "MAGEE-WOMEN'S HOSPITAL", x)
+	x <- gsub("BOSTON UNIVERSITY MEDICAL CAMPUS", "BOSTON UNIVERSITY", x)
+	x <- gsub("RUTGERS, THE STATE UNIVERSITY OF N.J.", "RUTGERS UNIVERSITY", x)
+	x <- gsub("SLOAN-KETTERING INSTITUTE CAN RESEARCH", "SLOAN-KETTERING INSTITUTE CANCER RESEARCH", x)
+	x <- gsub("TEMPLE UNIVERSITY OF THE COMMONWEALTH", "TEMPLE UNIVERSITY", x)
+	x <- gsub("CLEVELAND CLINIC LERNER COM-CWRU", "CLEVELAND CLINIC", x)
+	x <- gsub("LSU PENNINGTON BIOMEDICAL RESEARCH CENTER", "LOUISIANA STATE UNIVERSITY", x)
+	x <- gsub("UNIVERSITY OF TEXAS MD ANDERSON CAN CENTER", "UNIVERSITY OF TEXAS MD ANDERSON CANCER CENTER", x)
+	x <- gsub("RBHS-ROBERT WOOD JOHNSON MEDICAL SCHOOL", "ROBERT WOOD JOHNSON MEDICAL SCHOOL", x)
+	x <- gsub("HENRY M. JACKSON FDN FOR THE ADV MIL/MEDICAL", "HENRY M. JACKSON FOUNDATION", x)
+}
