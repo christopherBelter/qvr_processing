@@ -41,4 +41,26 @@ Fifth, it replaces all cells in the data frame that have a value of "-" with NA.
 And finally, it removes any columns that consist entirely of NA values. QVR will often inlcude extra commas at the end of lines, which are read into R as being empty columns, so the function removes them.
 
 ## Extensions
-At the moment, this function has only been tested on data sets from QVR that include an Appl ID column, but in principle it could be used to collapse data on other unique identifiers (like Investigator Profile IDs, ORCID IDs, or FOA numbers) or used on other data sets with different document IDs by changing the `doc_id` argument. 
+The main `process_qvr_data()` function can be used to collapse data on other unique identifiers (like Investigator Profile IDs, ORCID IDs, or FOA numbers) or used on other data sets with different document IDs by changing the `doc_id` argument. It can therefore be used as the inverse of the tidyr `separate_rows()` function to collapse rows on a specific identifier.
+
+
+## The `clean_abstracts()` function (beta)
+Long text columns from QVR - like abstracts, specific aims, and public health relevance texts - often have extra quotation marks or other special characters in them that cause parsing errors when reading .csv files into R. The `clean_abstracts()` function attempts to remove these characters from a .csv file and creates a new cleaned version of the .csv that can be read into R using the normal `read.csv()` or `read_csv()` functions.
+
+The function expects the long text column to be in a two-column .csv file consisting of the Appl ID and the text column in question. Any additional columns in that .csv will cause the function to not work properly. So to use the function, download the text column separately from the rest of the application data from QVR and then merge them in R after processing the text.
+
+To use the function on a two-column .csv file from QVR, run 
+
+```r
+clean_abstracts("projects/abstracts.csv")
+```
+
+The function will then create a new version of the file with "_cleaned" added to the end of the filename. Then you can read the cleaned version into R, run the `qvr_processing()` function on it to remove any duplicate rows, and then merge it with the rest of the application data.
+
+```r
+abs <- read.csv("projects/abstracts_cleaned.csv")
+abs <- process_qvr_data(abs)
+appls <- merge(appls, abs, by = "appl_id", all.x = TRUE)
+```
+
+This function is still in beta, so there may still be bugs. 
