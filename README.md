@@ -52,13 +52,13 @@ The function expects the long text column to be in a two-column .csv file consis
 To use the function on a two-column .csv file from QVR, run 
 
 ```r
-clean_abstracts("projects/abstracts.csv")
+clean_abstracts("abstracts.csv")
 ```
 
 The function will then create a new version of the file with "_cleaned" added to the end of the filename. Then you can read the cleaned version into R, run the `qvr_processing()` function on it to remove any duplicate rows, and then merge it with the rest of the application data.
 
 ```r
-abs <- read.csv("projects/abstracts_cleaned.csv")
+abs <- read.csv("abstracts_cleaned.csv", stringsAsFactors = FALSE)
 abs <- process_qvr_data(abs)
 appls <- merge(appls, abs, by = "appl_id", all.x = TRUE)
 ```
