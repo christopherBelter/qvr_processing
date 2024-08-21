@@ -47,6 +47,15 @@ process_qvr_data <- function(the_data, id_column = "Appl.Id", hd_branch = TRUE) 
 		the_data$branch[the_data$branch %in% c("PP")] <- "PPB"
 		the_data$branch[the_data$branch %in% c("PCCR")] <- "PTCIB"
 	}
+	if ("RFA.PA.Number" %in% colnames(the_data) == TRUE) {
+		the_data$nofo_number <- gsub("(PA)(\\d{2})", "\\1-\\2", the_data$RFA.PA.Number)
+		the_data$nofo_number <- gsub("(PA[RS])(\\d{2})", "\\1-\\2", the_data$nofo_number)
+		the_data$nofo_number <- gsub("([A-Z]{2})(\\d{2})", "RFA-\\1-\\2", the_data$nofo_number)
+		the_data$nofo_number <- gsub("(OTA)(\\d{2})", "\\1-\\2", the_data$nofo_number)
+	}
+	if (all("Actv" %in% colnames(the_data), "Project" %in% colnames(the_data)) == TRUE) {
+		the_data$core_project_num <- paste0(the_data$Actv, gsub("-.+", "", the_data$Project))
+	}
 	colnames(the_data) <- tolower(colnames(the_data))
 	colnames(the_data) <- gsub("\\.\\.*", "_", colnames(the_data))
 	colnames(the_data) <- gsub("_$", "", colnames(the_data))
